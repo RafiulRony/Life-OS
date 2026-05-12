@@ -11,6 +11,7 @@ import DashboardPage from "./pages/DashboardPage"
 import WorkspacePage from "./pages/WorkspacePage"
 import TasksPage from "./pages/TasksPage"
 import NotesPage from "./pages/NotesPage"
+import HabitsPage from "./pages/HabitsPage"
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth()
@@ -71,6 +72,7 @@ const AppRoutes = () => (
       <Route path="workspaces/:id" element={<WorkspacePage />} />
       <Route path="tasks" element={<TasksPage />} />
       <Route path="notes" element={<NotesPage />} />
+      <Route path="habits" element={<HabitsPage />} />
     </Route>
 
     <Route path="*" element={<Navigate to="/dashboard" replace />} />

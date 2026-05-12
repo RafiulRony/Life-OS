@@ -4,6 +4,7 @@ import { getDashboard } from "../services/dashboard.service"
 import { useAuth } from "../context/AuthContext"
 import StatCard from "../components/ui/StatCard"
 import TaskCard from "../components/tasks/TaskCard"
+import DashboardHabits from "../components/dashboard/DashboardHabits"
 import Spinner from "../components/ui/Spinner"
 import EmptyState from "../components/ui/EmptyState"
 import CreateTaskModal from "../components/tasks/CreateTaskModal"
@@ -45,8 +46,15 @@ export default function DashboardPage() {
     )
   }
 
-  const { stats, todayTasks, ongoingTasks, completedTasks, workspaces } =
-    data || {}
+  const {
+    stats,
+    todayTasks,
+    ongoingTasks,
+    completedTasks,
+    workspaces,
+    todayHabits,
+    habitSummary,
+  } = data || {}
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -96,6 +104,13 @@ export default function DashboardPage() {
           color="blue"
         />
       </div>
+
+      {/* Today's Habits */}
+      <DashboardHabits
+        habits={todayHabits}
+        summary={habitSummary}
+        onRefresh={load}
+      />
 
       {/* Workspaces overview */}
       {workspaces?.length > 0 && (

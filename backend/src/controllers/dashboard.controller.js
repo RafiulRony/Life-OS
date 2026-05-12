@@ -1,5 +1,14 @@
 const prisma = require("../utils/prisma")
 
+// YYYY-MM-DD in local time
+const getLocalDateString = () => {
+  const now = new Date()
+  const y = now.getFullYear()
+  const m = String(now.getMonth() + 1).padStart(2, "0")
+  const d = String(now.getDate()).padStart(2, "0")
+  return `${y}-${m}-${d}`
+}
+
 const getDashboard = async (req, res) => {
   try {
     const userId = req.user.id
@@ -72,11 +81,53 @@ const getDashboard = async (req, res) => {
       ],
     )
 
+    // Today's habits — only from personal workspace
+    const todayStr = getLocalDateString()
+    const personalWorkspace = workspaces.find((w) => w.type === "personal")
+    let todayHabits = []
+    let habitSummary = null
+
+    if (personalWorkspace) {
+      const habits = await prisma.habit.findMany({
+        where: { workspaceId: personalWorkspace.id, userId, isActive: true },
+        include: {
+          completions: {
+            where: { date: todayStr },
+            select: { id: true, date: true },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      })
+
+      todayHabits = habits.map((h) => ({
+        id: h.id,
+        title: h.title,
+        emoji: h.emoji,
+        color: h.color,
+        completedToday: h.completions.length > 0,
+      }))
+
+      const completedCount = todayHabits.filter((h) => h.completedToday).length
+      habitSummary = {
+        total: todayHabits.length,
+        completed: completedCount,
+        remaining: todayHabits.length - completedCount,
+        allDone:
+          todayHabits.length > 0 && completedCount === todayHabits.length,
+        percent:
+          todayHabits.length > 0
+            ? Math.round((completedCount / todayHabits.length) * 100)
+            : 0,
+      }
+    }
+
     res.json({
       workspaces,
       todayTasks,
       ongoingTasks,
       completedTasks,
+      todayHabits,
+      habitSummary,
       stats: {
         totalTasks,
         doneTasks,

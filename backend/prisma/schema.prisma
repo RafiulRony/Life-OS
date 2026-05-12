@@ -43,6 +43,7 @@ model Workspace {
   tasks    Task[]
   notes    Note[]
   goals    Goal[]
+  habits   Habit[]
 
   @@map("workspaces")
 }
@@ -118,15 +119,20 @@ model Goal {
 }
 
 model Habit {
-  id        String   @id @default(cuid())
-  title     String
-  emoji     String?  @default("✨")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  emoji       String?  @default("✨")
+  color       String?  @default("#6470f3")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   // Relations
   userId      String
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   completions HabitCompletion[]
 
   @@map("habits")

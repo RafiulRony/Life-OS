@@ -39,6 +39,8 @@ export default function Sidebar({ open, onClose }) {
     community: "🌍",
   }
 
+  const hasPersonalWorkspace = workspaces.some((w) => w.type === "personal")
+
   return (
     <>
       <aside
@@ -67,6 +69,9 @@ export default function Sidebar({ open, onClose }) {
           <NavItem to="/dashboard" icon="🏡" label="Dashboard" />
           <NavItem to="/tasks" icon="✅" label="Tasks" />
           <NavItem to="/notes" icon="📝" label="Notes" />
+          {hasPersonalWorkspace && (
+            <NavItem to="/habits" icon="🔥" label="Habits" />
+          )}
 
           {/* Workspaces */}
           <div className="pt-4">

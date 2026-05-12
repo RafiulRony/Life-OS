@@ -7,6 +7,7 @@ const workspaceRoutes = require("./routes/workspace.routes")
 const taskRoutes = require("./routes/task.routes")
 const noteRoutes = require("./routes/note.routes")
 const dashboardRoutes = require("./routes/dashboard.routes")
+const habitRoutes = require("./routes/habit.routes")
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -31,6 +32,7 @@ app.use("/api/workspaces", workspaceRoutes)
 app.use("/api/tasks", taskRoutes)
 app.use("/api/notes", noteRoutes)
 app.use("/api/dashboard", dashboardRoutes)
+app.use("/api/habits", habitRoutes)
 
 // 404 handler
 app.use((req, res) => {
