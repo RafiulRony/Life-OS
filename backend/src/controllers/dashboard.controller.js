@@ -87,6 +87,8 @@ const getDashboard = async (req, res) => {
     let todayHabits = []
     let habitSummary = null
 
+    let goalSummary = null
+
     if (personalWorkspace) {
       const habits = await prisma.habit.findMany({
         where: { workspaceId: personalWorkspace.id, userId, isActive: true },
@@ -119,6 +121,64 @@ const getDashboard = async (req, res) => {
             ? Math.round((completedCount / todayHabits.length) * 100)
             : 0,
       }
+
+      // Goals summary
+      const goals = await prisma.goal.findMany({
+        where: { workspaceId: personalWorkspace.id, userId },
+        select: { status: true, currentValue: true, targetValue: true },
+      })
+
+      const totalGoals = goals.length
+      const activeGoals = goals.filter((g) => g.status === "active").length
+      const completedGoals = goals.filter(
+        (g) => g.status === "completed",
+      ).length
+      const overallGoalPercent =
+        totalGoals > 0
+          ? Math.round(
+              goals.reduce((sum, g) => {
+                const pct =
+                  g.targetValue > 0
+                    ? Math.min((g.currentValue / g.targetValue) * 100, 100)
+                    : 0
+                return sum + pct
+              }, 0) / totalGoals,
+            )
+          : 0
+
+      // Active goals for dashboard widget (top 5)
+      const activeGoalsList = await prisma.goal.findMany({
+        where: { workspaceId: personalWorkspace.id, userId, status: "active" },
+        select: {
+          id: true,
+          title: true,
+          icon: true,
+          color: true,
+          currentValue: true,
+          targetValue: true,
+          unit: true,
+          targetDate: true,
+          status: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      })
+
+      const activeGoalsEnriched = activeGoalsList.map((g) => ({
+        ...g,
+        percent:
+          g.targetValue > 0
+            ? Math.min(Math.round((g.currentValue / g.targetValue) * 100), 100)
+            : 0,
+      }))
+
+      goalSummary = {
+        total: totalGoals,
+        active: activeGoals,
+        completed: completedGoals,
+        overallPercent: overallGoalPercent,
+        activeGoals: activeGoalsEnriched,
+      }
     }
 
     res.json({
@@ -128,6 +188,7 @@ const getDashboard = async (req, res) => {
       completedTasks,
       todayHabits,
       habitSummary,
+      goalSummary,
       stats: {
         totalTasks,
         doneTasks,

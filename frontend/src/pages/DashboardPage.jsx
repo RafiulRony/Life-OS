@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext"
 import StatCard from "../components/ui/StatCard"
 import TaskCard from "../components/tasks/TaskCard"
 import DashboardHabits from "../components/dashboard/DashboardHabits"
+import DashboardGoals from "../components/dashboard/DashboardGoals"
 import Spinner from "../components/ui/Spinner"
 import EmptyState from "../components/ui/EmptyState"
 import CreateTaskModal from "../components/tasks/CreateTaskModal"
@@ -54,6 +55,7 @@ export default function DashboardPage() {
     workspaces,
     todayHabits,
     habitSummary,
+    goalSummary,
   } = data || {}
 
   return (
@@ -111,6 +113,9 @@ export default function DashboardPage() {
         summary={habitSummary}
         onRefresh={load}
       />
+
+      {/* Active Goals */}
+      <DashboardGoals goals={goalSummary?.activeGoals} summary={goalSummary} />
 
       {/* Workspaces overview */}
       {workspaces?.length > 0 && (

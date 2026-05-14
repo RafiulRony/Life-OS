@@ -23,6 +23,7 @@ model User {
   assignedTasks     Task[]            @relation("TaskAssignee")
   createdNotes      Note[]
   habits            Habit[]
+  goals             Goal[]
 
   @@map("users")
 }
@@ -104,18 +105,43 @@ model Note {
 }
 
 model Goal {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  status      String   @default("active") // active | completed | paused
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String    @id @default(cuid())
+  title         String
+  description   String?
+  category      String?
+  icon          String?   @default("🎯")
+  color         String?   @default("#6470f3")
+  targetValue   Float
+  currentValue  Float     @default(0)
+  unit          String    // e.g. "KG", "Books", "৳", "Hours", "%", custom
+  status        String    @default("active") // active | completed | paused | cancelled
+  startDate     String?   // YYYY-MM-DD
+  targetDate    String?   // YYYY-MM-DD
+  completedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   // Relations
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId   String
+  workspace     Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  progressHistory GoalProgressHistory[]
 
   @@map("goals")
+}
+
+model GoalProgressHistory {
+  id             String   @id @default(cuid())
+  previousValue  Float
+  updatedValue   Float
+  note           String?
+  createdAt      DateTime @default(now())
+
+  goalId         String
+  goal           Goal     @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@map("goal_progress_history")
 }
 
 model Habit {

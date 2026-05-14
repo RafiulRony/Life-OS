@@ -8,6 +8,7 @@ const taskRoutes = require("./routes/task.routes")
 const noteRoutes = require("./routes/note.routes")
 const dashboardRoutes = require("./routes/dashboard.routes")
 const habitRoutes = require("./routes/habit.routes")
+const goalRoutes = require("./routes/goal.routes")
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -33,6 +34,7 @@ app.use("/api/tasks", taskRoutes)
 app.use("/api/notes", noteRoutes)
 app.use("/api/dashboard", dashboardRoutes)
 app.use("/api/habits", habitRoutes)
+app.use("/api/goals", goalRoutes)
 
 // 404 handler
 app.use((req, res) => {

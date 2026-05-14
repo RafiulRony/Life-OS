@@ -72,6 +72,9 @@ export default function Sidebar({ open, onClose }) {
           {hasPersonalWorkspace && (
             <NavItem to="/habits" icon="🔥" label="Habits" />
           )}
+          {hasPersonalWorkspace && (
+            <NavItem to="/goals" icon="🎯" label="Goals" />
+          )}
 
           {/* Workspaces */}
           <div className="pt-4">
