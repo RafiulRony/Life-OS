@@ -46,30 +46,42 @@ const getGoals = async (req, res) => {
         .json({ message: "Goals are only available in Personal workspaces" })
     }
 
-    const where = { workspaceId, userId: req.user.id }
-    if (status) where.status = status
+    const baseWhere = { workspaceId, userId: req.user.id }
+    const filteredWhere = status ? { ...baseWhere, status } : baseWhere
 
-    const goals = await prisma.goal.findMany({
-      where,
-      include: {
-        progressHistory: {
-          orderBy: { createdAt: "desc" },
-          take: 10,
+    // Fetch filtered goals (for display) and all goals (for summary) in parallel
+    const [goals, allGoals] = await Promise.all([
+      prisma.goal.findMany({
+        where: filteredWhere,
+        include: {
+          progressHistory: {
+            orderBy: { createdAt: "desc" },
+            take: 10,
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    })
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.goal.findMany({
+        where: baseWhere,
+        select: { status: true, currentValue: true, targetValue: true },
+      }),
+    ])
 
     const enriched = goals.map(enrichGoal)
 
-    // Summary stats
-    const total = enriched.length
-    const active = enriched.filter((g) => g.status === "active").length
-    const completed = enriched.filter((g) => g.status === "completed").length
-    const paused = enriched.filter((g) => g.status === "paused").length
+    // Summary stats always reflect ALL goals, not the filtered subset
+    const total = allGoals.length
+    const active = allGoals.filter((g) => g.status === "active").length
+    const completed = allGoals.filter((g) => g.status === "completed").length
+    const paused = allGoals.filter((g) => g.status === "paused").length
     const overallPercent =
       total > 0
-        ? Math.round(enriched.reduce((sum, g) => sum + g.percent, 0) / total)
+        ? Math.round(
+            allGoals.reduce(
+              (sum, g) => sum + calcPercent(g.currentValue, g.targetValue),
+              0,
+            ) / total,
+          )
         : 0
 
     res.json({
@@ -122,11 +134,9 @@ const createGoal = async (req, res) => {
     } = req.body
 
     if (!workspaceId || !title || targetValue === undefined || !unit) {
-      return res
-        .status(400)
-        .json({
-          message: "workspaceId, title, targetValue, and unit are required",
-        })
+      return res.status(400).json({
+        message: "workspaceId, title, targetValue, and unit are required",
+      })
     }
 
     if (Number(targetValue) <= 0) {
