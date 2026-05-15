@@ -1,11 +1,11 @@
 const prisma = require("../utils/prisma")
 
-// Verify user is a member of the workspace
+// Verify user is an accepted member of the workspace
 const isMember = async (workspaceId, userId) => {
   const member = await prisma.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId } },
   })
-  return !!member
+  return !!member && member.status === "accepted"
 }
 
 const getTasks = async (req, res) => {

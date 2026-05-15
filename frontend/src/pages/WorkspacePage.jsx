@@ -4,6 +4,7 @@ import {
   getWorkspace,
   deleteWorkspace,
   removeMember,
+  leaveWorkspace,
 } from "../services/workspace.service"
 import { getTasks } from "../services/task.service"
 import { getNotes } from "../services/note.service"
@@ -69,6 +70,22 @@ export default function WorkspacePage() {
     }
   }
 
+  const handleLeave = async () => {
+    if (
+      !confirm(
+        `Leave "${workspace.name}"? You will lose access to this workspace.`,
+      )
+    )
+      return
+    try {
+      await leaveWorkspace(id)
+      fetchWorkspaces()
+      navigate("/dashboard")
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to leave workspace")
+    }
+  }
+
   const handleRemoveMember = async (memberId) => {
     if (!confirm("Remove this member?")) return
     try {
@@ -92,10 +109,13 @@ export default function WorkspacePage() {
   }
 
   const isOwner = workspace.ownerId === user?.id
+  // members array only contains accepted members (filtered on backend)
+  const memberCount = workspace.members?.length ?? 0
+
   const tabs = [
     { key: "tasks", label: `Tasks (${tasks.length})` },
     { key: "notes", label: `Notes (${notes.length})` },
-    { key: "members", label: `Members (${workspace.members?.length ?? 0})` },
+    { key: "members", label: `Members (${memberCount})` },
   ]
 
   return (
@@ -123,21 +143,25 @@ export default function WorkspacePage() {
             </div>
           </div>
 
-          {isOwner && (
-            <div className="flex items-center gap-2 shrink-0">
-              {workspace.type !== "personal" && (
-                <button
-                  className="btn-secondary text-xs"
-                  onClick={() => setShowAddMember(true)}
-                >
-                  + Add member
-                </button>
-              )}
+          <div className="flex items-center gap-2 shrink-0">
+            {isOwner && workspace.type !== "personal" && (
+              <button
+                className="btn-secondary text-xs"
+                onClick={() => setShowAddMember(true)}
+              >
+                + Invite
+              </button>
+            )}
+            {isOwner ? (
               <button className="btn-danger text-xs" onClick={handleDelete}>
                 Delete
               </button>
-            </div>
-          )}
+            ) : (
+              <button className="btn-danger text-xs" onClick={handleLeave}>
+                Leave
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Stats row */}
@@ -156,7 +180,7 @@ export default function WorkspacePage() {
           </div>
           <div className="text-center">
             <p className="text-lg font-bold text-zinc-800 dark:text-zinc-100">
-              {workspace.members?.length ?? 0}
+              {memberCount}
             </p>
             <p className="text-xs text-zinc-400">Members</p>
           </div>
@@ -180,7 +204,7 @@ export default function WorkspacePage() {
         ))}
       </div>
 
-      {/* Tab content */}
+      {/* Tab: Tasks */}
       {activeTab === "tasks" && (
         <section className="space-y-3">
           <div className="flex justify-end">
@@ -220,6 +244,7 @@ export default function WorkspacePage() {
         </section>
       )}
 
+      {/* Tab: Notes */}
       {activeTab === "notes" && (
         <section className="space-y-3">
           <div className="flex justify-end">
@@ -259,6 +284,7 @@ export default function WorkspacePage() {
         </section>
       )}
 
+      {/* Tab: Members */}
       {activeTab === "members" && (
         <section className="space-y-3">
           {isOwner && workspace.type !== "personal" && (
@@ -267,42 +293,51 @@ export default function WorkspacePage() {
                 className="btn-secondary"
                 onClick={() => setShowAddMember(true)}
               >
-                + Add Member
+                + Invite Member
               </button>
             </div>
           )}
+
           <div className="space-y-2">
-            {workspace.members?.map((m) => (
-              <div
-                key={m.id}
-                className="card p-4 flex items-center justify-between"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-sm font-semibold text-primary-700 dark:text-primary-300">
-                    {m.user.name?.[0]?.toUpperCase()}
+            {workspace.members?.map((m) => {
+              const isSelf = m.user.id === user?.id
+              const isWsOwner = m.user.id === workspace.ownerId
+              return (
+                <div
+                  key={m.id}
+                  className="card p-4 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center text-sm font-semibold text-primary-700 dark:text-primary-300">
+                      {m.user.name?.[0]?.toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                        {m.user.name}
+                        {isSelf && (
+                          <span className="ml-1.5 text-xs text-zinc-400">
+                            (you)
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-zinc-400">{m.user.email}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                      {m.user.name}
-                    </p>
-                    <p className="text-xs text-zinc-400">{m.user.email}</p>
+                  <div className="flex items-center gap-2">
+                    {isWsOwner && <Badge label="owner" variant="personal" />}
+                    {/* Owner can remove any non-owner member */}
+                    {isOwner && !isWsOwner && (
+                      <button
+                        onClick={() => handleRemoveMember(m.user.id)}
+                        className="text-xs text-zinc-400 hover:text-red-500 transition-colors"
+                      >
+                        Remove
+                      </button>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {m.user.id === workspace.ownerId && (
-                    <Badge label="owner" variant="personal" />
-                  )}
-                  {isOwner && m.user.id !== user?.id && (
-                    <button
-                      onClick={() => handleRemoveMember(m.user.id)}
-                      className="text-xs text-zinc-400 hover:text-red-500 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </section>
       )}

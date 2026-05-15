@@ -4,7 +4,7 @@ const isMember = async (workspaceId, userId) => {
   const member = await prisma.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId } },
   })
-  return !!member
+  return !!member && member.status === "accepted"
 }
 
 const getNotes = async (req, res) => {

@@ -9,3 +9,9 @@ export const addMember = (id, email) =>
   api.post(`/workspaces/${id}/members`, { email })
 export const removeMember = (id, userId) =>
   api.delete(`/workspaces/${id}/members/${userId}`)
+export const leaveWorkspace = (id) => api.delete(`/workspaces/${id}/leave`)
+export const getInvitations = () => api.get("/workspaces/invitations")
+export const acceptInvitation = (memberId) =>
+  api.post(`/workspaces/invitations/${memberId}/accept`)
+export const rejectInvitation = (memberId) =>
+  api.post(`/workspaces/invitations/${memberId}/reject`)

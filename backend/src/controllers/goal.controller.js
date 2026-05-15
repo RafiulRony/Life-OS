@@ -33,7 +33,10 @@ const getGoals = async (req, res) => {
     }
 
     const workspace = await prisma.workspace.findFirst({
-      where: { id: workspaceId, members: { some: { userId: req.user.id } } },
+      where: {
+        id: workspaceId,
+        members: { some: { userId: req.user.id, status: "accepted" } },
+      },
     })
 
     if (!workspace) {
@@ -146,7 +149,10 @@ const createGoal = async (req, res) => {
     }
 
     const workspace = await prisma.workspace.findFirst({
-      where: { id: workspaceId, members: { some: { userId: req.user.id } } },
+      where: {
+        id: workspaceId,
+        members: { some: { userId: req.user.id, status: "accepted" } },
+      },
     })
 
     if (!workspace) {

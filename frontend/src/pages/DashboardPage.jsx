@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { getDashboard } from "../services/dashboard.service"
 import { useAuth } from "../context/AuthContext"
+import { useWorkspace } from "../context/WorkspaceContext"
 import StatCard from "../components/ui/StatCard"
 import TaskCard from "../components/tasks/TaskCard"
 import DashboardHabits from "../components/dashboard/DashboardHabits"
 import DashboardGoals from "../components/dashboard/DashboardGoals"
+import InvitationsPanel from "../components/workspace/InvitationsPanel"
 import Spinner from "../components/ui/Spinner"
 import EmptyState from "../components/ui/EmptyState"
 import CreateTaskModal from "../components/tasks/CreateTaskModal"
@@ -13,6 +15,7 @@ import Badge from "../components/ui/Badge"
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const { fetchWorkspaces } = useWorkspace()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [showCreateTask, setShowCreateTask] = useState(false)
@@ -78,6 +81,9 @@ export default function DashboardPage() {
           + New Task
         </button>
       </div>
+
+      {/* Pending workspace invitations */}
+      <InvitationsPanel onAccepted={fetchWorkspaces} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

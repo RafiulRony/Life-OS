@@ -95,7 +95,7 @@ const getHabits = async (req, res) => {
     const workspace = await prisma.workspace.findFirst({
       where: {
         id: workspaceId,
-        members: { some: { userId: req.user.id } },
+        members: { some: { userId: req.user.id, status: "accepted" } },
       },
     })
 
@@ -157,7 +157,7 @@ const createHabit = async (req, res) => {
     const workspace = await prisma.workspace.findFirst({
       where: {
         id: workspaceId,
-        members: { some: { userId: req.user.id } },
+        members: { some: { userId: req.user.id, status: "accepted" } },
       },
     })
 

@@ -51,6 +51,7 @@ model Workspace {
 
 model WorkspaceMember {
   id          String   @id @default(cuid())
+  status      String   @default("accepted") // accepted | pending
   joinedAt    DateTime @default(now())
 
   workspaceId String

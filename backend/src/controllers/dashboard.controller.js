@@ -19,7 +19,7 @@ const getDashboard = async (req, res) => {
 
     // Get all workspaces the user belongs to
     const workspaces = await prisma.workspace.findMany({
-      where: { members: { some: { userId } } },
+      where: { members: { some: { userId, status: "accepted" } } },
       select: { id: true, name: true, type: true, emoji: true },
     })
 
